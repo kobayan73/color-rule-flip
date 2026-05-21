@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Color Rule Flip</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #cbd5e1;
+      --card: rgba(241, 245, 249, 0.9);
+      --ink: #0f172a;
+      --muted: #475569;
+      --line: rgba(15, 23, 42, 0.16);
+      --blue: #2563eb;
+      --green: #16a34a;
+      --black-cell: #020617;
+      --white-cell: #f8fafc;
+      --shadow: rgba(15, 23, 42, 0.12);
+      --red: #ef4444;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        linear-gradient(135deg, #f1f5f9, var(--bg));
+      color: var(--ink);
+      display: grid;
+      place-items: center;
+      padding: 18px;
+    }
+
+    .app {
+      width: min(560px, 100%);
+      display: grid;
+      gap: 16px;
+    }
+
+    .screen {
+      display: grid;
+      gap: 16px;
+    }
+
+    .screen.hidden {
+      display: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: 0 12px 40px var(--shadow);
+      padding: 20px;
+    }
+
+    .home-card {
+      display: grid;
+      gap: 18px;
+      text-align: center;
+      padding: 28px;
+      min-height: 680px;
+      align-content: start;
+    }
+
+    .game-card {
+      display: grid;
+      gap: 32px;
+      text-align: center;
+      padding: 28px;
+      min-height: 680px;
+      align-content: start;
+    }
+
+    .home-title,
+    .game-title {
+      margin: 0;
+      font-size: clamp(36px, 9vw, 56px);
+      font-weight: 950;
+      letter-spacing: -0.05em;
+    }
+
+    .home-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.65;
+      font-weight: 800;
+    }
+
+    .size-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      width: min(360px, 100%);
+      justify-self: center;
+    }
+
+    .tutorial-start-btn {
+      width: min(280px, 100%);
+      justify-self: center;
+      background: #ffffff;
+      color: var(--ink);
+      border-color: var(--line);
+      min-height: 46px;
+      font-size: 15px;
+    }
+
+    .size-btn {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 12px;
+      min-height: 100px;
+      border-radius: 18px;
+      background: #ffffff;
+    }
+
+    .size-main {
+      font-size: 42px;
+      font-weight: 950;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .size-sub {
+      color: var(--ink);
+      font-size: 32px;
+      font-weight: 950;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .stage-word {
+      font-size: 17px;
+      font-weight: 900;
+      color: var(--muted);
+      vertical-align: middle;
+    }
+
+    header {
+      text-align: center;
+      display: grid;
+      gap: 8px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(28px, 7vw, 46px);
+      font-weight: 950;
+      letter-spacing: -0.05em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.65;
+      font-weight: 700;
+    }
+
+    .controls {
+      display: grid;
+      gap: 12px;
+    }
+
+    .difficulty-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+    }
+
+    .stage-status {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: min(420px, 100%);
+      justify-self: center;
+      padding: 12px 62px;
+      min-height: 68px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid var(--line);
+    }
+
+    .stage-main {
+      font-size: 24px;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+      text-align: center;
+    }
+
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      border-radius: 999px;
+      background: #ffffff;
+      font-size: 21px;
+      line-height: 1;
+    }
+
+    .stage-back-btn {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .stage-action-btn {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 12px 14px;
+      font-weight: 900;
+      cursor: pointer;
+      color: var(--ink);
+      background: #ffffff;
+      border: 1px solid var(--line);
+      transition: transform 0.08s ease, opacity 0.15s ease, background 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    .stage-back-btn:hover,
+    .stage-action-btn:hover {
+      transform: translateY(-50%) translateY(-1px);
+    }
+
+    button.active {
+      background: linear-gradient(180deg, #38bdf8, #2563eb);
+      color: #ffffff;
+      border-color: rgba(125, 211, 252, 0.72);
+      box-shadow: 0 12px 28px rgba(37, 99, 235, 0.28);
+    }
+
+    .action-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .new-btn {
+      background: linear-gradient(180deg, #22c55e, #15803d);
+      color: #ffffff;
+      border-color: rgba(74, 222, 128, 0.55);
+    }
+
+    .reset-btn {
+      background: #ffffff;
+    }
+
+    /* アニメーション切り替えボタン用のスタイル (現在は非表示) */
+    .anim-row {
+      display: none; /* UIから隠す */
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .anim-btn {
+      font-size: 11px;
+      padding: 8px 4px;
+      background: rgba(15, 23, 42, 0.05);
+      border-color: rgba(148, 163, 184, 0.1);
+      white-space: nowrap;
+    }
+
+    /* --- アニメーション定義 --- */
+
+    /* --- CATEGORY: ZOOM (v1-v3) --- */
+    .board.v1 .cell.animate {
+      animation: zoomIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .board.v2 .cell.animate {
+      animation: zoomHeavy 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .board.v3 .cell.animate {
+      animation: zoomFlicker 0.4s ease-out;
+    }
+
+    @keyframes zoomIn { 0% { transform: scale(0); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes zoomHeavy { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes zoomFlicker { 0% { transform: scale(0.5); opacity: 0; filter: brightness(2); } 100% { transform: scale(1); opacity: 1; filter: brightness(1); } }
+
+    /* --- CATEGORY: SINK (v4-v6) --- */
+    .board.v4 .cell.animate {
+      animation: sinkStandard 0.4s ease-out;
+    }
+    .board.v5 .cell.animate {
+      animation: sinkDeep 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .board.v6 .cell.animate {
+      animation: sinkSpring 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes sinkStandard { 0% { transform: scale(1); } 40% { transform: scale(0.6); } 100% { transform: scale(1); } }
+    @keyframes sinkDeep { 0% { transform: scale(1); } 30% { transform: scale(0.3); filter: brightness(0.4); } 80% { transform: scale(1.1); } 100% { transform: scale(1); } }
+    @keyframes sinkSpring { 0% { transform: scale(1); } 20% { transform: scale(1.3); } 50% { transform: scale(0.5); } 100% { transform: scale(1); } }
+
+    /* --- CATEGORY: STRIKE (v7-v9) --- */
+    .board.v7 .cell.animate {
+      animation: strikeStandard 0.4s linear;
+    }
+    .board.v8 .cell.animate {
+      animation: strikeFlash 0.4s ease-out;
+    }
+    .board.v9 .cell.animate {
+      animation: strikeVibrate 0.4s linear;
+    }
+
+    @keyframes strikeStandard { 0% { transform: scale(0.5); opacity: 0; } 60% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+    @keyframes strikeFlash { 0% { transform: scale(0.8); filter: brightness(3); opacity: 0; } 100% { transform: scale(1); filter: brightness(1); opacity: 1; } }
+    @keyframes strikeVibrate {
+      0% { transform: scale(1); }
+      10% { transform: scale(1.1) translateX(1px); }
+      20% { transform: scale(1.1) translateX(-1px); }
+      30% { transform: scale(1.1) translateX(1px); }
+      40% { transform: scale(1.1) translateX(0); }
+      100% { transform: scale(1); }
+    }
+
+    /* タップされた瞬間だけ適用するクラス（JSで制御） */
+    .cell.just-tapped {
+      z-index: 10;
+    }
+
+    /* ヒントのアニメーションを少し強化 */
+    .cell.hint {
+      z-index: 5;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat {
+      background: rgba(255, 255, 255, 0.5);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 10px;
+      text-align: center;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+    }
+
+    .stat-value {
+      margin-top: 4px;
+      font-size: 20px;
+      font-weight: 950;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .board-wrap {
+      display: grid;
+      gap: 14px;
+      justify-items: center;
+    }
+
+    .board {
+      width: min(420px, calc(100vw - 72px));
+      aspect-ratio: 1 / 1;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      padding: 8px;
+      border-radius: 24px;
+      background: rgba(15, 23, 42, 0.12);
+      border: 1px solid var(--line);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .cell {
+      border: 0;
+      border-radius: 16px;
+      cursor: pointer;
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.7),
+        0 6px 16px var(--shadow);
+      transition: transform 0.08s ease, background 0.14s ease, border-color 0.14s ease;
+      position: relative;
+    }
+
+    .cell:hover {
+      transform: scale(1.07);
+    }
+
+    .cell.press-center {
+      z-index: 20;
+      transform: scale(1.14);
+    }
+
+    .cell.press-neighbor {
+      z-index: 12;
+      transform: scale(1.07);
+    }
+
+    .cell.white {
+      background: #ffffff;
+      border: 1px solid rgba(15, 23, 42, 0.22);
+    }
+
+    .cell.black {
+      background:
+        radial-gradient(circle at 35% 25%, rgba(148, 163, 184, 0.18), transparent 34%),
+        var(--black-cell);
+      border: 1px solid rgba(15, 23, 42, 0.9);
+    }
+
+    .cell.hint {
+      outline: 4px solid var(--red);
+      box-shadow:
+        0 0 0 4px rgba(239, 68, 68, 0.35),
+        0 0 24px rgba(239, 68, 68, 0.85),
+        inset 0 1px 0 rgba(255, 255, 255, 0.16);
+      animation: hintPulse 0.9s ease-in-out infinite alternate;
+    }
+
+    @keyframes hintPulse {
+      from {
+        transform: scale(1);
+      }
+      to {
+        transform: scale(1.11);
+      }
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.42;
+      transform: none;
+    }
+
+
+    .clear-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      display: none;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, 0.38);
+      z-index: 100;
+    }
+
+    .clear-modal-backdrop.show {
+      display: grid;
+    }
+
+    .clear-modal {
+      width: min(360px, 100%);
+      padding: 24px;
+      border-radius: 28px;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid rgba(15, 23, 42, 0.16);
+      box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
+      text-align: center;
+      color: var(--ink);
+    }
+
+    .clear-modal-title {
+      margin: 0;
+      font-size: 42px;
+      font-weight: 950;
+      letter-spacing: -0.04em;
+    }
+
+    .clear-modal-text {
+      margin: 8px 0 18px;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .next-btn {
+      width: 100%;
+      padding: 24px 14px;
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+      color: #ffffff;
+      border-color: rgba(96, 165, 250, 0.55);
+      font-size: 20px;
+    }
+
+    .modal-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .title-btn {
+      width: 100%;
+      padding: 24px 14px;
+      background: #ffffff;
+      font-size: 20px;
+    }
+
+    .tutorial-panel {
+      width: 100%;
+      justify-self: center;
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      display: grid;
+      gap: 10px;
+      text-align: center;
+      box-shadow: 0 12px 40px var(--shadow);
+    }
+
+    .tutorial-panel.hidden {
+      display: none;
+    }
+
+    .tutorial-title {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 950;
+      letter-spacing: -0.02em;
+    }
+
+    .tutorial-text {
+      margin: 0;
+      color: var(--muted);
+      font-weight: 800;
+      line-height: 1.5;
+    }
+
+    .tutorial-primary-btn {
+      width: 100%;
+      padding: 24px 14px;
+      background: linear-gradient(180deg, #60a5fa, #2563eb);
+      color: #ffffff;
+      border-color: rgba(96, 165, 250, 0.55);
+      font-size: 20px;
+    }
+
+    .tutorial-secondary-btn {
+      width: 100%;
+      background: #ffffff;
+    }
+
+    .rules {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.4);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 10px;
+    }
+
+    .rules strong {
+      color: var(--ink);
+    }
+
+    @media (max-width: 440px) {
+      body {
+        min-height: 100svh;
+        padding: 6px;
+        align-items: start;
+      }
+
+      .app {
+        width: 100%;
+        min-height: 100svh;
+        gap: 10px;
+      }
+
+      .screen {
+        gap: 10px;
+      }
+
+      .card {
+        border-radius: 18px;
+        padding: 12px;
+      }
+
+      .home-card,
+      .game-card {
+        min-height: calc(100svh - 12px);
+        padding: 40px 18px 18px;
+        gap: 24px;
+        align-content: start;
+      }
+
+      .home-title,
+      .game-title {
+        font-size: clamp(48px, 14vw, 64px);
+        line-height: 1;
+      }
+
+      .size-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+
+      .tutorial-start-btn {
+        width: min(240px, 100%);
+        min-height: 40px;
+        font-size: 14px;
+      }
+
+      .size-btn {
+        grid-template-columns: 1fr 1fr;
+        min-height: 86px;
+        border-radius: 15px;
+      }
+
+      .size-main,
+      .size-sub {
+        font-size: 28px;
+      }
+
+      .size-main {
+        font-size: 34px;
+      }
+
+      .stage-word {
+        font-size: 14px;
+      }
+
+      header {
+        gap: 0;
+      }
+
+      h1 {
+        font-size: clamp(48px, 14vw, 64px);
+        line-height: 1;
+      }
+
+      .controls {
+        gap: 8px;
+      }
+
+      header.card {
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+
+      .controls.card {
+        padding-top: 14px;
+        padding-bottom: 14px;
+      }
+
+      .difficulty-row,
+      .stats {
+        gap: 5px;
+      }
+
+      .difficulty-row {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+      }
+
+      .action-row {
+        gap: 6px;
+      }
+
+      button {
+        padding: 9px 6px;
+        font-size: 12px;
+        line-height: 1;
+      }
+
+      .next-btn,
+      .title-btn,
+      .tutorial-primary-btn {
+        padding: 18px 12px;
+        font-size: 18px;
+      }
+
+      .stage-status {
+        width: min(calc(100vw - 40px), calc(100svh - 212px));
+        padding: 10px 54px;
+        min-height: 58px;
+        border-radius: 15px;
+      }
+
+      .stage-main {
+        font-size: 20px;
+      }
+
+      .icon-btn {
+        width: 36px;
+        height: 36px;
+        font-size: 18px;
+      }
+
+      .board-wrap {
+        gap: 0;
+        width: 100%;
+        justify-content: center;
+        justify-items: center;
+        margin-top: 52px;
+      }
+
+      .board {
+        width: min(calc(100vw - 40px), calc(100svh - 212px));
+        justify-self: center;
+      }
+
+      .clear-modal {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .clear-modal-title {
+        font-size: 36px;
+      }
+    }
+
+    @media (max-width: 440px) and (max-height: 700px) {
+      .board-wrap {
+        margin-top: 36px;
+      }
+      body {
+        padding: 4px;
+      }
+
+      .app {
+        gap: 8px;
+      }
+
+      .card {
+        padding: 10px;
+      }
+
+      .home-card,
+      .game-card {
+        min-height: calc(100svh - 8px);
+        padding: 34px 10px 14px;
+      }
+
+      .home-title,
+      .game-title {
+        font-size: 46px;
+      }
+
+      .controls {
+        gap: 6px;
+      }
+
+      header.card,
+      .controls.card {
+        padding-top: 11px;
+        padding-bottom: 11px;
+      }
+
+      button {
+        padding: 8px 5px;
+        font-size: 11px;
+      }
+
+      .next-btn,
+      .title-btn,
+      .tutorial-primary-btn {
+        padding: 16px 10px;
+        font-size: 16px;
+      }
+
+      .stage-status {
+        width: min(calc(100vw - 34px), calc(100svh - 190px));
+        padding: 8px 50px;
+        min-height: 52px;
+      }
+
+      .stage-main {
+        font-size: 18px;
+      }
+
+      .icon-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 17px;
+      }
+
+      .board {
+        width: min(calc(100vw - 34px), calc(100svh - 190px));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <section id="homeScreen" class="screen">
+      <div class="card home-card">
+        <h1 class="home-title">Color Rule Flip</h1>
+        <p class="home-subtitle">Choose a board size.</p>
+        <button id="tutorialStartBtn" class="tutorial-start-btn" type="button">Tutorial</button>
+        <div class="size-grid" aria-label="Board size">
+          <button class="size-btn" type="button" data-size="4">
+            <span class="size-main">4×4</span>
+            <span class="size-sub"><span class="stage-word">Stage</span> <span class="stage-number">1</span></span>
+          </button>
+          <button class="size-btn" type="button" data-size="5">
+            <span class="size-main">5×5</span>
+            <span class="size-sub"><span class="stage-word">Stage</span> <span class="stage-number">1</span></span>
+          </button>
+          <button class="size-btn" type="button" data-size="6">
+            <span class="size-main">6×6</span>
+            <span class="size-sub"><span class="stage-word">Stage</span> <span class="stage-number">1</span></span>
+          </button>
+          <button class="size-btn" type="button" data-size="7">
+            <span class="size-main">7×7</span>
+            <span class="size-sub"><span class="stage-word">Stage</span> <span class="stage-number">1</span></span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="gameScreen" class="screen hidden">
+      <div class="card game-card">
+        <header>
+          <h1 class="game-title">Color Rule Flip</h1>
+        </header>
+
+        <section class="controls">
+          <div id="stageStatus" class="stage-status" aria-label="現在のステージ">
+            <button id="stageBackBtn" class="icon-btn stage-back-btn" type="button" aria-label="Home" title="Home">←</button>
+            <div class="stage-main" id="stageNumberLabel">Stage 1</div>
+            <button id="stageActionBtn" class="icon-btn stage-action-btn reset-btn" type="button" aria-label="ヒント" title="ヒント">💡</button>
+          </div>
+
+          <div id="tutorialPanel" class="tutorial-panel hidden">
+            <h2 id="tutorialTitle" class="tutorial-title"></h2>
+            <p id="tutorialText" class="tutorial-text"></p>
+            <button id="tutorialPrimaryBtn" class="tutorial-primary-btn" type="button">Start</button>
+            <button id="tutorialSecondaryBtn" class="tutorial-secondary-btn hidden" type="button">Again</button>
+          </div>
+
+
+        <!-- 
+        将来的に復活させる可能性があるため、ボタンHTMLはコメントアウトして保存します
+        <div class="anim-row">
+          <button id="v1Btn" class="anim-btn active" type="button">v1: Zoom</button>
+          <button id="v2Btn" class="anim-btn" type="button">v2: Z-Heavy</button>
+          <button id="v3Btn" class="anim-btn" type="button">v3: Z-Light</button>
+          <button id="v4Btn" class="anim-btn" type="button">v4: Sink</button>
+          <button id="v5Btn" class="anim-btn" type="button">v5: S-Deep</button>
+          <button id="v6Btn" class="anim-btn" type="button">v6: S-Spring</button>
+          <button id="v7Btn" class="anim-btn" type="button">v7: Strike</button>
+          <button id="v8Btn" class="anim-btn" type="button">v8: S-Flash</button>
+          <button id="v9Btn" class="anim-btn" type="button">v9: S-Vibe</button>
+        </div> 
+        -->
+
+        <!-- Audio elements -->
+        <audio id="tapSound" src="sound/tap2.mp3" preload="auto"></audio>
+        <audio id="buttonSound" src="sound/tap1.mp3" preload="auto"></audio>
+        <audio id="clearSound" src="sound/clear.mp3" preload="auto"></audio>
+        <audio id="levelUpSound" src="sound/levelup.mp3" preload="auto"></audio>
+
+        </section>
+
+        <main class="board-wrap">
+          <div id="board" class="board" aria-label="5x5 board"></div>
+        </main>
+      </div>
+
+      <div id="clearModalBackdrop" class="clear-modal-backdrop" aria-hidden="true">
+        <div class="clear-modal" role="dialog" aria-modal="true" aria-labelledby="clearModalTitle">
+          <h2 id="clearModalTitle" class="clear-modal-title">CLEAR!</h2>
+          <p id="clearModalText" class="clear-modal-text">全て白にできました。</p>
+          <div class="modal-actions">
+            <button id="nextStageBtn" class="next-btn" type="button">Next</button>
+            <button id="backToTitleBtn" class="title-btn" type="button">Back to title</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    let SIZE = 5;
+    let currentBoardSize = 5;
+
+    const SIZE_CONFIG = {
+      4: { label: "4×4", startMoves: 2 },
+      5: { label: "5×5", startMoves: 2 },
+      6: { label: "6×6", startMoves: 3 },
+      7: { label: "7×7", startMoves: 4 }
+    };
+
+    const STORAGE_KEY_PREFIX = "colorRuleFlipStageProgress";
+    const NEXT_BUTTON_STYLES = {
+      default: {
+        background: "linear-gradient(180deg, #60a5fa, #2563eb)",
+        borderColor: "rgba(96, 165, 250, 0.55)"
+      },
+      hard: {
+        background: "linear-gradient(180deg, #818cf8, #4f46e5)",
+        borderColor: "rgba(129, 140, 248, 0.55)"
+      },
+      levelUp: {
+        background: "linear-gradient(180deg, #fb7185, #e11d48)",
+        borderColor: "rgba(251, 113, 133, 0.55)"
+      }
+    };
+
+    function getStorageKey(size = currentBoardSize) {
+      return `${STORAGE_KEY_PREFIX}_${size}x${size}`;
+    }
+
+    function getInProgressStorageKey(size = currentBoardSize) {
+      return `${STORAGE_KEY_PREFIX}_${size}x${size}_inProgress`;
+    }
+
+    function getStageLevel(stageNumber) {
+      const baseLevel = Math.floor((stageNumber - 1) / 20) + 1;
+      const positionInBlock = stageNumber % 20;
+      const isBonusHardStage = positionInBlock === 5 || positionInBlock === 10 || positionInBlock === 15;
+      return baseLevel + (isBonusHardStage ? 1 : 0);
+    }
+
+    function getStageScrambleMoves(stageNumber) {
+      const config = SIZE_CONFIG[currentBoardSize] || SIZE_CONFIG[5];
+      const maxUniqueMoves = SIZE * SIZE - 1;
+      const stageMoves = config.startMoves + getStageLevel(stageNumber) - 1;
+      if (stageMoves <= maxUniqueMoves) {
+        return stageMoves;
+      }
+
+      const minEndlessMoves = Math.max(1, SIZE * SIZE - SIZE);
+      return randomInteger(minEndlessMoves, maxUniqueMoves);
+    }
+
+    function randomInteger(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getSavedStageNumber(size = currentBoardSize) {
+      const savedStage = Number(localStorage.getItem(getStorageKey(size)));
+      if (Number.isInteger(savedStage) && savedStage >= 1) {
+        return savedStage;
+      }
+      return 1;
+    }
+
+    function getInitialStageNumber() {
+      return getSavedStageNumber();
+    }
+
+    function serializeGameState() {
+      if (isTutorialMode || cleared) return null;
+      return {
+        size: currentBoardSize,
+        stageNumber: currentStageNumber,
+        board: cloneBoard(board),
+        initialBoard: cloneBoard(initialBoard),
+        generationMoves: generationMoves.map((move) => ({ row: move.row, col: move.col })),
+        hintIndex,
+        activeHintMove: activeHintMove ? { row: activeHintMove.row, col: activeHintMove.col } : null,
+        isAtInitialBoard,
+        moveCount
+      };
+    }
+
+    function saveInProgressGame() {
+      const state = serializeGameState();
+      if (!state) return;
+      try {
+        localStorage.setItem(getInProgressStorageKey(currentBoardSize), JSON.stringify(state));
+      } catch (error) {
+        console.warn("Could not save in-progress Color Rule Flip state.", error);
+      }
+    }
+
+    function clearInProgressGame(size = currentBoardSize) {
+      localStorage.removeItem(getInProgressStorageKey(size));
+    }
+
+    function loadInProgressGame(size) {
+      const raw = localStorage.getItem(getInProgressStorageKey(size));
+      if (!raw) return false;
+
+      try {
+        const state = JSON.parse(raw);
+        if (!state || state.size !== size || !Array.isArray(state.board) || !Array.isArray(state.initialBoard)) {
+          clearInProgressGame(size);
+          return false;
+        }
+
+        currentBoardSize = size;
+        SIZE = size;
+        currentStageNumber = Number(state.stageNumber) || getSavedStageNumber(size);
+        board = state.board.map((row) => row.slice());
+        initialBoard = state.initialBoard.map((row) => row.slice());
+        generationMoves = Array.isArray(state.generationMoves)
+          ? state.generationMoves.map((move) => ({ row: move.row, col: move.col }))
+          : [];
+        hintIndex = Number(state.hintIndex) || 0;
+        activeHintMove = state.activeHintMove ? { row: state.activeHintMove.row, col: state.activeHintMove.col } : null;
+        isAtInitialBoard = Boolean(state.isAtInitialBoard);
+        moveCount = Number(state.moveCount) || 0;
+        cleared = false;
+        pressedMove = null;
+
+        boardEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+        boardEl.setAttribute("aria-label", `${SIZE}x${SIZE} board`);
+        updateStageLabels();
+        setMessage("");
+        render();
+        return true;
+      } catch (error) {
+        console.warn("Could not load in-progress Color Rule Flip state.", error);
+        clearInProgressGame(size);
+        return false;
+      }
+    }
+
+    let currentStageNumber = 1;
+    let board = createEmptyBoard();
+    let initialBoard = createEmptyBoard();
+    let currentAnim = "v1";
+    let generationMoves = [];
+    let hintIndex = 0;
+    let activeHintMove = null;
+    let isAtInitialBoard = true;
+    let moveCount = 0;
+    let cleared = false;
+    let pressedMove = null;
+    let isTutorialMode = false;
+    let tutorialStep = 0;
+    let tutorialAllowedMove = null;
+    let tutorialClearStartBoard = null;
+    let tutorialClearStep = 0;
+    let tutorialClearMoves = [];
+
+    const homeScreen = document.getElementById("homeScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const boardEl = document.getElementById("board");
+    const messageEl = null;
+    const tutorialStartBtn = document.getElementById("tutorialStartBtn");
+    const stageStatus = document.getElementById("stageStatus");
+    const stageBackBtn = document.getElementById("stageBackBtn");
+    const stageActionBtn = document.getElementById("stageActionBtn");
+
+    const stageNumberLabel = document.getElementById("stageNumberLabel");
+
+    const clearModalBackdrop = document.getElementById("clearModalBackdrop");
+    const clearModalText = document.getElementById("clearModalText");
+    const nextStageBtn = document.getElementById("nextStageBtn");
+    const backToTitleBtn = document.getElementById("backToTitleBtn");
+    const tutorialPanel = document.getElementById("tutorialPanel");
+    const tutorialTitle = document.getElementById("tutorialTitle");
+    const tutorialText = document.getElementById("tutorialText");
+    const tutorialPrimaryBtn = document.getElementById("tutorialPrimaryBtn");
+    const tutorialSecondaryBtn = document.getElementById("tutorialSecondaryBtn");
+
+    const tapSound = document.getElementById("tapSound");
+    const buttonSound = document.getElementById("buttonSound");
+    const clearSound = document.getElementById("clearSound");
+    const levelUpSound = document.getElementById("levelUpSound");
+
+    // Removed newStageBtn event listener
+
+    document.querySelectorAll(".size-btn").forEach((button) => {
+      button.addEventListener("click", () => {
+        playButtonSound();
+        startGame(Number(button.dataset.size));
+      });
+    });
+
+    tutorialStartBtn.addEventListener("click", () => {
+      playButtonSound();
+      startTutorial();
+    });
+
+    stageBackBtn.addEventListener("click", () => {
+      playButtonSound();
+      showHome();
+    });
+
+    stageActionBtn.addEventListener("click", () => {
+      playButtonSound();
+      if (isPristineInitialState()) {
+        showNextHint();
+        return;
+      }
+      resetStage();
+    });
+
+    document.addEventListener("pointerup", handleGlobalPointerRelease);
+    document.addEventListener("pointercancel", handleGlobalPointerRelease);
+
+    function isPristineInitialState() {
+      return isAtInitialBoard && moveCount === 0 && !cleared;
+    }
+
+
+    nextStageBtn.addEventListener("click", () => {
+      playButtonSound();
+      hideClearModal();
+      advanceStage();
+    });
+
+    backToTitleBtn.addEventListener("click", () => {
+      playButtonSound();
+      hideClearModal();
+      showHome();
+    });
+
+    /* アニメーション切り替えロジックは保持しますが、リスナーはコメントアウトします */
+    // const animButtons = {
+    //   v1: document.getElementById("v1Btn"),
+    //   v2: document.getElementById("v2Btn"),
+    //   v3: document.getElementById("v3Btn"),
+    //   v4: document.getElementById("v4Btn"),
+    //   v5: document.getElementById("v5Btn"),
+    //   v6: document.getElementById("v6Btn"),
+    //   v7: document.getElementById("v7Btn"),
+    //   v8: document.getElementById("v8Btn"),
+    //   v9: document.getElementById("v9Btn")
+    // };
+
+
+    // Object.entries(animButtons).forEach(([key, button]) => {
+    //   button.addEventListener("click", () => {
+    //     currentAnim = key;
+    //     updateToggleButtons(animButtons, currentAnim);
+    //     const allCoords = [];
+    //     for (let r = 0; r < SIZE; r++) {
+    //       for (let c = 0; c < SIZE; c++) allCoords.push([r, c]);
+    //     }
+    //     render(allCoords);
+    //   });
+    // });
+
+    function playTapSound() {
+      if (!tapSound) return;
+
+      try {
+        tapSound.currentTime = 0;
+        const playPromise = tapSound.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } catch (error) {
+        // Ignore audio playback errors caused by browser autoplay restrictions.
+      }
+    }
+
+    function playButtonSound() {
+      if (!buttonSound) return;
+
+      try {
+        buttonSound.currentTime = 0;
+        const playPromise = buttonSound.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } catch (error) {
+        // Ignore audio playback errors caused by browser autoplay restrictions.
+      }
+    }
+
+    function playClearSound() {
+      if (!clearSound) return;
+
+      try {
+        clearSound.currentTime = 0;
+        const playPromise = clearSound.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } catch (error) {
+        // Ignore audio playback errors caused by browser autoplay restrictions.
+      }
+    }
+
+    function playLevelUpSound() {
+      if (!levelUpSound) return;
+
+      try {
+        levelUpSound.currentTime = 0;
+        const playPromise = levelUpSound.play();
+        if (playPromise && typeof playPromise.catch === "function") {
+          playPromise.catch(() => {});
+        }
+      } catch (error) {
+        // Ignore audio playback errors caused by browser autoplay restrictions.
+      }
+    }
+
+    function setMessage(text, isClear = false) {
+      if (!messageEl) return;
+      messageEl.textContent = text;
+      messageEl.classList.toggle("clear", isClear);
+    }
+
+    function showTutorialPanel(title, text, buttonText = "", onButtonClick = null, secondaryButtonText = "", onSecondaryButtonClick = null) {
+      tutorialTitle.textContent = title;
+      tutorialText.textContent = text;
+      tutorialPrimaryBtn.textContent = buttonText;
+      tutorialPrimaryBtn.onclick = null;
+      tutorialSecondaryBtn.textContent = secondaryButtonText;
+      tutorialSecondaryBtn.onclick = null;
+
+      if (buttonText) {
+        tutorialPrimaryBtn.classList.remove("hidden");
+        tutorialPrimaryBtn.onclick = () => {
+          playButtonSound();
+          if (typeof onButtonClick === "function") onButtonClick();
+        };
+      } else {
+        tutorialPrimaryBtn.classList.add("hidden");
+      }
+
+      if (secondaryButtonText) {
+        tutorialSecondaryBtn.classList.remove("hidden");
+        tutorialSecondaryBtn.onclick = () => {
+          playButtonSound();
+          if (typeof onSecondaryButtonClick === "function") onSecondaryButtonClick();
+        };
+      } else {
+        tutorialSecondaryBtn.classList.add("hidden");
+      }
+
+      tutorialPanel.classList.remove("hidden");
+    }
+
+    function hideTutorialPanel() {
+      tutorialPanel.classList.add("hidden");
+    }
+
+    function showHome() {
+      const wasTutorialMode = isTutorialMode;
+      if (!wasTutorialMode && !cleared && !gameScreen.classList.contains("hidden")) {
+        saveInProgressGame();
+      }
+
+      hideClearModal();
+      hideTutorialPanel();
+      isTutorialMode = false;
+      tutorialStep = 0;
+      tutorialAllowedMove = null;
+      tutorialClearStartBoard = null;
+      tutorialClearStep = 0;
+      tutorialClearMoves = [];
+      pressedMove = null;
+      updateHomeStageLabels();
+      homeScreen.classList.remove("hidden");
+      gameScreen.classList.add("hidden");
+    }
+
+    function updateHomeStageLabels() {
+      document.querySelectorAll(".size-btn").forEach((button) => {
+        const size = Number(button.dataset.size);
+        const stageNumber = button.querySelector(".stage-number");
+        if (!stageNumber) return;
+        stageNumber.textContent = getSavedStageNumber(size);
+      });
+    }
+
+    function startGame(size) {
+      isTutorialMode = false;
+      tutorialStep = 0;
+      tutorialAllowedMove = null;
+      tutorialClearStartBoard = null;
+      tutorialClearStep = 0;
+      tutorialClearMoves = [];
+      hideTutorialPanel();
+      currentBoardSize = SIZE_CONFIG[size] ? size : 5;
+      SIZE = currentBoardSize;
+
+      homeScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+
+      if (loadInProgressGame(currentBoardSize)) {
+        return;
+      }
+
+      currentStageNumber = getInitialStageNumber();
+      board = createEmptyBoard();
+      initialBoard = createEmptyBoard();
+      generateStage();
+    }
+
+    function startTutorial() {
+      isTutorialMode = true;
+      SIZE = 4;
+      currentBoardSize = 4;
+      tutorialStep = 2;
+      tutorialAllowedMove = null;
+      tutorialClearStartBoard = null;
+      tutorialClearStep = 0;
+      tutorialClearMoves = [];
+
+      board = createEmptyBoard();
+      initialBoard = createEmptyBoard();
+      generationMoves = [];
+      hintIndex = 0;
+      activeHintMove = null;
+      isAtInitialBoard = true;
+      moveCount = 0;
+      cleared = false;
+      pressedMove = null;
+
+      hideClearModal();
+      homeScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+
+      boardEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+      boardEl.setAttribute("aria-label", "4x4 tutorial board");
+
+      setupTutorialStep(2);
+    }
+
+    function createEmptyBoard() {
+      return Array.from({ length: SIZE }, () => Array(SIZE).fill(false));
+    }
+
+    function createFullBoard(value) {
+      return Array.from({ length: SIZE }, () => Array(SIZE).fill(value));
+    }
+
+    function cloneBoard(source) {
+      return source.map((row) => row.slice());
+    }
+
+    function shuffledCells() {
+      const cells = [];
+
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          cells.push({ row, col });
+        }
+      }
+
+      for (let i = cells.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cells[i], cells[j]] = [cells[j], cells[i]];
+      }
+
+      return cells;
+    }
+
+    function isInside(row, col) {
+      return row >= 0 && row < SIZE && col >= 0 && col < SIZE;
+    }
+
+    function toggleCell(row, col) {
+      if (!isInside(row, col)) return;
+      board[row][col] = !board[row][col];
+    }
+
+    function applyMove(row, col) {
+      const targets = getMoveTargets(row, col);
+      
+      const validTargets = [];
+      targets.forEach(([r, c]) => {
+        if (isInside(r, c)) {
+          toggleCell(r, c);
+          validTargets.push([r, c]);
+        }
+      });
+      return validTargets;
+    }
+
+    function getMoveTargets(row, col) {
+      const isBlack = board[row][col];
+      const targets = isBlack
+        ? [
+            [row, col],
+            [row - 1, col - 1],
+            [row - 1, col + 1],
+            [row + 1, col - 1],
+            [row + 1, col + 1]
+          ]
+        : [
+            [row, col],
+            [row - 1, col],
+            [row + 1, col],
+            [row, col - 1],
+            [row, col + 1]
+          ];
+
+      return targets.filter(([r, c]) => isInside(r, c));
+    }
+
+    function applyInverseMove(row, col) {
+      const isBlackAfterForwardMove = board[row][col];
+      const targets = isBlackAfterForwardMove
+        ? [
+            [row, col],
+            [row - 1, col],
+            [row + 1, col],
+            [row, col - 1],
+            [row, col + 1]
+          ]
+        : [
+            [row, col],
+            [row - 1, col - 1],
+            [row - 1, col + 1],
+            [row + 1, col - 1],
+            [row + 1, col + 1]
+          ];
+
+      const validTargets = [];
+      targets.forEach(([r, c]) => {
+        if (isInside(r, c)) {
+          toggleCell(r, c);
+          validTargets.push([r, c]);
+        }
+      });
+      return validTargets;
+    }
+
+    function handleCellPressStart(row, col) {
+      if (cleared) return;
+      pressedMove = { row, col, targets: getMoveTargets(row, col) };
+      render();
+    }
+
+    function handleCellPressCancel() {
+      if (!pressedMove) return;
+      pressedMove = null;
+      render();
+    }
+
+    function handleGlobalPointerRelease() {
+      if (!pressedMove) return;
+      handleCellPressCancel();
+    }
+
+    function handleCellPressEnd(row, col) {
+      if (cleared) return;
+
+      const shouldApplyMove = pressedMove && pressedMove.row === row && pressedMove.col === col;
+      pressedMove = null;
+
+      if (!shouldApplyMove) {
+        render();
+        return;
+      }
+
+      handleCellTap(row, col);
+    }
+
+    function handleCellTap(row, col) {
+      if (cleared) return;
+
+      if (isTutorialMode) {
+        handleTutorialTap(row, col);
+        return;
+      }
+
+      isAtInitialBoard = false;
+      activeHintMove = null;
+      pressedMove = null;
+      playTapSound();
+      const changedCells = applyMove(row, col);
+      moveCount += 1;
+      saveInProgressGame();
+      render(changedCells);
+
+      if (isCleared()) {
+        cleared = true;
+        saveClearedStageProgress();
+        clearInProgressGame();
+        if (isNextLevelStage()) {
+          playLevelUpSound();
+        } else {
+          playClearSound();
+        }
+        setMessage(`クリア！ ${moveCount}手で全て白にしました。`, true);
+        showClearModal();
+      }
+    }
+
+    function isLevelUpStage(stageNumber) {
+      return stageNumber % 20 === 0;
+    }
+
+    function isSameMove(move, row, col) {
+      return move && move.row === row && move.col === col;
+    }
+
+    function getCellColorName(row, col) {
+      return board[row][col] ? "black" : "white";
+    }
+
+    function setupTutorialStep(step) {
+      tutorialStep = step;
+      pressedMove = null;
+      updateStageLabels();
+
+      if (step === 1) {
+        board = createEmptyBoard();
+        initialBoard = cloneBoard(board);
+        activeHintMove = null;
+        tutorialAllowedMove = null;
+        render();
+        showTutorialPanel(
+          "Welcome",
+          "Make every tile white. Let's learn the two color rules.",
+          "Start",
+          () => setupTutorialStep(2)
+        );
+        return;
+      }
+
+      if (step === 2) {
+        board = createEmptyBoard();
+        initialBoard = cloneBoard(board);
+        tutorialAllowedMove = { row: 1, col: 1 };
+        activeHintMove = tutorialAllowedMove;
+        render();
+        showTutorialPanel("White tile", "Tap the highlighted white tile. White flips a cross.");
+        return;
+      }
+
+      if (step === 3) {
+        board = createFullBoard(true);
+        initialBoard = cloneBoard(board);
+        tutorialAllowedMove = { row: 1, col: 1 };
+        activeHintMove = tutorialAllowedMove;
+        render();
+        showTutorialPanel("Black tile", "Now tap the highlighted black tile. Black flips diagonals.");
+        return;
+      }
+
+      if (step === 4) {
+        setupTutorialClearPuzzle();
+        tutorialClearStep = 0;
+        activeHintMove = tutorialClearMoves[0] || null;
+        render();
+        showTutorialPanel("Try clearing", "Clear in 2 moves. Use one white move and one black move.");
+        return;
+      }
+
+      if (step === 5) {
+        activeHintMove = null;
+        cleared = true;
+        playClearSound();
+        render();
+        showTutorialPanel("Nice!", "You are ready to play.", "Back to title", showHome);
+      }
+    }
+
+    function setupTutorialClearPuzzle() {
+      const candidates = shuffledCells();
+      const colorOrders = [
+        ["white", "black"],
+        ["black", "white"]
+      ];
+
+      for (const first of candidates) {
+        for (const second of candidates) {
+          for (const requiredColors of colorOrders) {
+            const answerMoves = [
+              { row: first.row, col: first.col, requiredColor: requiredColors[0] },
+              { row: second.row, col: second.col, requiredColor: requiredColors[1] }
+            ];
+
+            board = createEmptyBoard();
+            for (let i = answerMoves.length - 1; i >= 0; i--) {
+              applyInverseMove(answerMoves[i].row, answerMoves[i].col);
+            }
+
+            const candidateBoard = cloneBoard(board);
+            const seenColors = [];
+            let valid = true;
+
+            for (const move of answerMoves) {
+              const color = getCellColorName(move.row, move.col);
+              seenColors.push(color);
+              if (color !== move.requiredColor) {
+                valid = false;
+                break;
+              }
+              applyMove(move.row, move.col);
+            }
+
+            if (valid && isCleared() && seenColors.includes("white") && seenColors.includes("black")) {
+              board = candidateBoard;
+              initialBoard = cloneBoard(board);
+              tutorialClearStartBoard = cloneBoard(board);
+              tutorialClearMoves = answerMoves;
+              return;
+            }
+          }
+        }
+      }
+
+      console.warn("Tutorial clear puzzle validation failed.");
+      board = createEmptyBoard();
+      initialBoard = cloneBoard(board);
+      tutorialClearStartBoard = cloneBoard(board);
+      tutorialClearMoves = [];
+    }
+
+    function resetTutorialClearPuzzle(title = "Try again", text = "Use both rules to clear in 2 moves.") {
+      board = cloneBoard(tutorialClearStartBoard);
+      tutorialClearStep = 0;
+      activeHintMove = tutorialClearMoves[0] || null;
+      pressedMove = null;
+      render();
+      showTutorialPanel(title, text);
+    }
+
+    function handleTutorialTap(row, col) {
+      if (tutorialStep === 2) {
+        if (!isSameMove(tutorialAllowedMove, row, col)) {
+          render();
+          return;
+        }
+
+        playTapSound();
+        const changedCells = applyMove(row, col);
+        activeHintMove = null;
+        tutorialAllowedMove = null;
+        tutorialStep = 2.5;
+        render(changedCells);
+        showTutorialPanel(
+          "White tile",
+          "White flipped a cross. Try it freely, then go next.",
+          "Next",
+          () => setupTutorialStep(3),
+          "Again",
+          () => setupTutorialStep(2)
+        );
+        return;
+      }
+
+      if (tutorialStep === 2.5) {
+        playTapSound();
+        const changedCells = applyMove(row, col);
+        activeHintMove = null;
+        render(changedCells);
+        return;
+      }
+
+      if (tutorialStep === 3) {
+        if (!isSameMove(tutorialAllowedMove, row, col)) {
+          render();
+          return;
+        }
+
+        playTapSound();
+        const changedCells = applyMove(row, col);
+        activeHintMove = null;
+        tutorialAllowedMove = null;
+        tutorialStep = 3.5;
+        render(changedCells);
+        showTutorialPanel(
+          "Black tile",
+          "Black flipped the diagonals. Try it again or go next.",
+          "Next",
+          () => setupTutorialStep(4),
+          "Again",
+          () => setupTutorialStep(3)
+        );
+        return;
+      }
+
+      if (tutorialStep === 3.5) {
+        playTapSound();
+        const changedCells = applyMove(row, col);
+        activeHintMove = null;
+        render(changedCells);
+        return;
+      }
+
+      if (tutorialStep !== 4) return;
+
+      const expectedMove = tutorialClearMoves[tutorialClearStep];
+      if (!isSameMove(expectedMove, row, col)) {
+        resetTutorialClearPuzzle();
+        return;
+      }
+
+      playTapSound();
+      const changedCells = applyMove(row, col);
+      tutorialClearStep += 1;
+      render(changedCells);
+
+      if (tutorialClearStep < tutorialClearMoves.length) {
+        activeHintMove = tutorialClearMoves[tutorialClearStep];
+        render(changedCells);
+        showTutorialPanel("Good!", "One more move.");
+        return;
+      }
+
+      if (isCleared()) {
+        setupTutorialStep(5);
+      } else {
+        resetTutorialClearPuzzle();
+      }
+    }
+
+    function getNextStageNumber() {
+      return currentStageNumber + 1;
+    }
+
+    function isNextLevelStage() {
+      return isLevelUpStage(getNextStageNumber());
+    }
+
+    function isHardBonusStage(stageNumber) {
+      const positionInBlock = stageNumber % 20;
+      return positionInBlock === 5 || positionInBlock === 10 || positionInBlock === 15;
+    }
+
+    function updateNextButtonStyle() {
+      const nextStageNumber = getNextStageNumber();
+      const style = isLevelUpStage(nextStageNumber)
+        ? NEXT_BUTTON_STYLES.levelUp
+        : isHardBonusStage(nextStageNumber)
+          ? NEXT_BUTTON_STYLES.hard
+          : NEXT_BUTTON_STYLES.default;
+      nextStageBtn.style.background = style.background;
+      nextStageBtn.style.borderColor = style.borderColor;
+      nextStageBtn.style.color = "#ffffff";
+    }
+
+    function showClearModal() {
+      clearModalText.textContent = `Stage ${currentStageNumber} completed`;
+      nextStageBtn.textContent = isNextLevelStage()
+        ? "Next Level"
+        : isHardBonusStage(getNextStageNumber())
+          ? "Next: Hard"
+          : "Next";
+      updateNextButtonStyle();
+      clearModalBackdrop.classList.add("show");
+      clearModalBackdrop.setAttribute("aria-hidden", "false");
+    }
+
+    function hideClearModal() {
+      clearModalBackdrop.classList.remove("show");
+      clearModalBackdrop.setAttribute("aria-hidden", "true");
+    }
+
+    function updateStageLabels() {
+      stageNumberLabel.textContent = isTutorialMode ? "Tutorial" : `Stage ${currentStageNumber}`;
+    }
+
+    function saveClearedStageProgress() {
+      const nextStage = currentStageNumber + 1;
+      const savedStage = Number(localStorage.getItem(getStorageKey())) || 1;
+      if (nextStage > savedStage) {
+        localStorage.setItem(getStorageKey(), String(nextStage));
+      }
+    }
+
+    function advanceStage() {
+      currentStageNumber += 1;
+      localStorage.setItem(getStorageKey(), String(currentStageNumber));
+      clearInProgressGame();
+      generateStage();
+    }
+
+    function generateStage() {
+      hideClearModal();
+      boardEl.style.gridTemplateColumns = `repeat(${SIZE}, 1fr)`;
+      boardEl.setAttribute("aria-label", `${SIZE}x${SIZE} board`);
+      const scrambleMoves = getStageScrambleMoves(currentStageNumber);
+      updateStageLabels();
+      board = createEmptyBoard();
+      generationMoves = [];
+
+      const cells = shuffledCells();
+
+      for (let i = 0; i < scrambleMoves; i++) {
+        const { row, col } = cells[i];
+        generationMoves.push({ row, col });
+        applyInverseMove(row, col);
+      }
+
+      initialBoard = cloneBoard(board);
+      hintIndex = 0;
+      activeHintMove = null;
+      isAtInitialBoard = true;
+      moveCount = 0;
+      cleared = false;
+
+      if (isCleared()) {
+        generateStage();
+        return;
+      }
+
+      setMessage("");
+      clearInProgressGame();
+      render();
+    }
+
+    function resetStage() {
+      hideClearModal();
+      board = cloneBoard(initialBoard);
+      hintIndex = 0;
+      activeHintMove = null;
+      isAtInitialBoard = true;
+      moveCount = 0;
+      cleared = false;
+      setMessage("");
+      saveInProgressGame();
+      render();
+    }
+
+    function showNextHint() {
+      if (!isAtInitialBoard || cleared || hintIndex >= generationMoves.length) return;
+
+      const hintMove = generationMoves[generationMoves.length - 1 - hintIndex];
+      activeHintMove = hintMove;
+      hintIndex += 1;
+      setMessage("");
+      saveInProgressGame();
+      render();
+    }
+
+    function isCleared() {
+      return board.every((row) => row.every((cell) => cell === false));
+    }
+
+    function countBlackCells() {
+      return board.flat().filter(Boolean).length;
+    }
+
+    function updateToggleButtons(buttonGroup, activeKey) {
+      Object.entries(buttonGroup).forEach(([key, button]) => {
+        button.classList.toggle("active", key === activeKey);
+      });
+    }
+
+    function render(changedCoords = []) {
+      boardEl.innerHTML = "";
+      // アニメーション用のクラスを付与
+      boardEl.className = `board ${currentAnim}`;
+
+      for (let row = 0; row < SIZE; row++) {
+        for (let col = 0; col < SIZE; col++) {
+          const cell = document.createElement("button");
+          cell.type = "button";
+          const isHintCell = activeHintMove && activeHintMove.row === row && activeHintMove.col === col;
+          const isAnimating = changedCoords.some(([r, c]) => r === row && c === col);
+          const isPressCenter = pressedMove && pressedMove.row === row && pressedMove.col === col;
+          const isPressNeighbor = pressedMove && !isPressCenter && pressedMove.targets.some(([r, c]) => r === row && c === col);
+          
+          cell.className = `cell ${board[row][col] ? "black" : "white"}${isHintCell ? " hint" : ""}${isAnimating ? " animate" : ""}${isPressCenter ? " press-center" : ""}${isPressNeighbor ? " press-neighbor" : ""}`;
+          cell.setAttribute("aria-label", `${row + 1}行${col + 1}列`);
+          cell.addEventListener("pointerdown", (event) => {
+            event.preventDefault();
+            handleCellPressStart(row, col);
+          });
+          cell.addEventListener("pointerup", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            handleCellPressEnd(row, col);
+          });
+          cell.addEventListener("pointerleave", (event) => {
+            if (event.buttons) handleCellPressCancel();
+          });
+          cell.addEventListener("pointercancel", handleCellPressCancel);
+          boardEl.appendChild(cell);
+        }
+      }
+
+      const remainingHints = Math.max(generationMoves.length - hintIndex, 0);
+      const shouldShowHint = isPristineInitialState();
+      if (isTutorialMode) {
+        stageStatus.classList.add("hidden");
+        stageBackBtn.style.visibility = "hidden";
+        stageActionBtn.style.visibility = "hidden";
+        stageActionBtn.disabled = true;
+        return;
+      }
+
+      stageStatus.classList.remove("hidden");
+      stageBackBtn.style.visibility = "visible";
+      stageActionBtn.style.visibility = "visible";
+      stageActionBtn.textContent = shouldShowHint ? "💡" : "↻";
+      stageActionBtn.setAttribute("aria-label", shouldShowHint ? "ヒント" : "リセット");
+      stageActionBtn.setAttribute("title", shouldShowHint ? "ヒント" : "リセット");
+      stageActionBtn.disabled = shouldShowHint && remainingHints <= 0;
+    }
+
+    showHome();
+  </script>
+</body>
+</html>
